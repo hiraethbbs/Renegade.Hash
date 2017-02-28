@@ -76,6 +76,7 @@ begin
     raise Exception.Create('Please install OpenSSL.') at
     get_caller_addr(get_frame),
     get_caller_frame(get_frame);
+    Fail;
   end;
 end;
 
