@@ -1,0 +1,23 @@
+#
+#  Makefile.fpc for hash units example
+#
+
+[target]
+programs=MDTest GeneratePascalShaHashes
+
+[require]
+packages=
+
+[install]
+fpcpackage=y
+
+[compiler]
+options=-Fu..
+
+[default]
+fpcdir=${FPCDIR}
+
+
+
+
+
