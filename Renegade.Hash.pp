@@ -45,19 +45,97 @@ uses
   Hash.Md,
   Hash.Sha,
   Hash.Base64,
-  Hash.Util;
+  Hash.Util,
+  Hash.BCrypt;
 
 type
+  TBCrypt = object
+     public
+       function Hash(const Password : AnsiString) : AnsiString; overload;static;
+       function Hash(const Password : AnsiString; HashType : THashTypes) : AnsiString; overload;
+       function Hash(const Password : AnsiString; HashType : THashTypes; Cost : Byte) : AnsiString; overload;
+       function Verify(const Password, BCryptHash : AnsiString) : Boolean;
+       function NeedsRehash(const BCryptHash : AnsiString) : Boolean; overload;
+       function NeedsRehash(const BCryptHash : AnsiString; Cost : Byte) : Boolean; overload;
+       function GetInfo(const BCryptHash : AnsiString) : RTPasswordInformation;
+  end;
+
   RTHash = object
     public
       Base64 : RTBase64;static;
       Sha : RTSha;static;
       Md : RTMd;static;
       Util : RTHashUtil;static;
+      BCrypt : TBCrypt;static;
       function HashEquals(KnownHash, CheckedHash : ansistring): boolean;static;
   end;
 
 implementation
+
+{ TBCrypt }
+function TBCrypt.Hash(const Password : AnsiString) : AnsiString; overload;
+var
+  BCrypt : RTBCrypt;
+begin
+  BCrypt := RTBCrypt.Create;
+  Result := BCrypt.CreateHash(Password, bcPHP, BCRYPT_DEFAULT_COST);
+  BCrypt.Free;
+end;
+
+function TBCrypt.Hash(const Password : AnsiString; HashType : THashTypes) : AnsiString; overload;
+var
+  BCrypt : RTBCrypt;
+begin
+  BCrypt := RTBCrypt.Create;
+  Result := BCrypt.CreateHash(Password, HashType, BCRYPT_DEFAULT_COST);
+  BCrypt.Free;
+end;
+
+function TBCrypt.Hash(const Password : AnsiString; HashType : THashTypes; Cost : Byte) : AnsiString; overload;
+var
+  BCrypt : RTBCrypt;
+begin
+  BCrypt := RTBCrypt.Create;
+  Result := BCrypt.CreateHash(Password, HashType, Cost);
+  BCrypt.Free;
+end;
+
+function TBCrypt.Verify(const Password, BCryptHash : AnsiString) : Boolean;
+var
+  BCrypt : RTBCrypt;
+begin
+  BCrypt := RTBCrypt.Create;
+  Result := BCrypt.VerifyHash(Password, BCryptHash);
+  BCrypt.Free;
+end;
+
+function TBCrypt.NeedsRehash(const BCryptHash : AnsiString) : Boolean; overload;
+var
+  BCrypt : RTBCrypt;
+begin
+  BCrypt := RTBCrypt.Create;
+  Result := BCrypt.NeedsRehash(BCryptHash, BCRYPT_DEFAULT_COST);
+  BCrypt.Free;
+end;
+
+function TBCrypt.NeedsRehash(const BCryptHash : AnsiString; Cost : Byte) : Boolean; overload;
+var
+  BCrypt : RTBCrypt;
+begin
+  BCrypt := RTBCrypt.Create;
+  Result := BCrypt.NeedsRehash(BCryptHash, Cost);
+  BCrypt.Free;
+
+end;
+
+function TBCrypt.GetInfo(const BCryptHash : AnsiString) : RTPasswordInformation;
+var
+  BCrypt : RTBCrypt;
+begin
+  BCrypt := RTBCrypt.Create;
+  Result := BCrypt.HashGetInfo(BCryptHash);
+  BCrypt.Free;
+end;
 
 function RTHash.HashEquals(KnownHash, CheckedHash : ansistring): boolean;
 begin

@@ -1,0 +1,20 @@
+#
+#  Makefile.fpc for hash units example
+#
+
+[target]
+units=Renegade.Hash
+
+[require]
+packages=
+
+
+[compiler]
+options=-Fu"./HashLib/HashLib/src/*"
+
+[default]
+fpcdir=${FPCDIR}
+
+
+
+
