@@ -9,13 +9,8 @@ Uses
   DateUtils,
   Classes;
  
-var
-	Hash : Md;
-	
 begin
-Hash := Md.Create;
-Writeln('MD2 : ', Hash.md2(DateTimeToStr(Now)));
-Writeln('MD4 : ', Hash.md4(DateTimeToStr(Now)));
-Writeln('MD5 : ', Hash.md5(DateTimeToStr(Now)));
-Hash.Free;
+	Writeln('MD2 : ', Md.md2(DateTimeToStr(Now)));
+	Writeln('MD4 : ', Md.md4(DateTimeToStr(Now)));
+	Writeln('MD5 : ', Md.md5(DateTimeToStr(Now)));
 end.

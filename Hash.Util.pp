@@ -32,41 +32,49 @@
 {  |::.|:. |                                            }
 {  `--- ---'                                            }
 {*******************************************************}
+
+unit Hash.Util;
 {$codepage utf8}
-{$h+}
-{$mode objfpc}
-unit Hash.Md;
+{$h+}{$mode objfpc}
 
 interface
 
-uses
-  md5,
-  SysUtils,
-  Classes;
-
 type
-  RTMd = object
-  public
-    function md2(S: UTF8String): ansistring;static;
-    function md4(S: UTF8String): ansistring;static;
-    function md5(S: UTF8STring): ansistring;static;
+  RTHashUtil = object
+    public
+      function HashEquals(KnownHash, CheckedHash : ansistring): boolean;static;
   end;
 
 implementation
 
-function RTMd.md2(S: UTF8String): ansistring;
+function RTHashUtil.HashEquals(KnownHash, CheckedHash : ansistring): boolean;
+var
+  HashCounter,
+  ResultStatus : SizeInt;
 begin
-  Result := MD2Print(MDString(S, MD_VERSION_2));
-end;
+      ResultStatus := 0;
+      if Length(KnownHash) <> Length(CheckedHash) then
+        begin
+          Result := False;
+          Exit;
+        end;
+      for HashCounter := 1 to Length(KnownHash) do
+      begin
+        {
+          From ext/standard/password.c php_password_verify line 244
+          We're using this method instead of = in order to provide
+          resistance towards timing attacks. This is a constant time
+          equality check that will always check every byte of both
+          values.
 
-function RTMd.md4(S: UTF8String): ansistring;
-begin
-  Result := MD4Print(MDString(S, MD_VERSION_4));
-end;
+         }
+         ResultStatus := ResultStatus or
+         (ord(CheckedHash[HashCounter]) xor
+         ord(KnownHash[HashCounter]));
 
-function RTMd.md5(S: UTF8String): ansistring;
-begin
-  Result := MD5Print(MDString(S, MD_VERSION_5));
+      end;
+
+      Result := (ResultStatus = 0);
 end;
 
 end.

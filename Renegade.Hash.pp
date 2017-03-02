@@ -32,41 +32,38 @@
 {  |::.|:. |                                            }
 {  `--- ---'                                            }
 {*******************************************************}
+
+unit Renegade.Hash;
 {$codepage utf8}
-{$h+}
-{$mode objfpc}
-unit Hash.Md;
+{$h+}{$mode objfpc}
 
 interface
 
 uses
-  md5,
+  Classes,
   SysUtils,
-  Classes;
+  Hash.Md,
+  Hash.Sha,
+  Hash.Base64,
+  Hash.Util;
 
 type
-  RTMd = object
-  public
-    function md2(S: UTF8String): ansistring;static;
-    function md4(S: UTF8String): ansistring;static;
-    function md5(S: UTF8STring): ansistring;static;
+  RTHash = object
+    public
+      Base64 : RTBase64;static;
+      Sha : RTSha;static;
+      Md : RTMd;static;
+      Util : RTHashUtil;static;
+      function HashEquals(KnownHash, CheckedHash : ansistring): boolean;static;
   end;
 
 implementation
 
-function RTMd.md2(S: UTF8String): ansistring;
+function RTHash.HashEquals(KnownHash, CheckedHash : ansistring): boolean;
 begin
-  Result := MD2Print(MDString(S, MD_VERSION_2));
-end;
-
-function RTMd.md4(S: UTF8String): ansistring;
-begin
-  Result := MD4Print(MDString(S, MD_VERSION_4));
-end;
-
-function RTMd.md5(S: UTF8String): ansistring;
-begin
-  Result := MD5Print(MDString(S, MD_VERSION_5));
+      Result := Util.HashEquals(KnownHash, CheckedHash);
 end;
 
 end.
+
+

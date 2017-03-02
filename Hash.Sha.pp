@@ -1,7 +1,5 @@
 {*******************************************************}
-
 {   Renegade BBS                                        }
-
 {   Copyright (c) 1990-2013 The Renegade Dev Team       }
 {   Copyleft  (ↄ) 2016-2017 Renegade BBS                }
 
@@ -32,6 +30,49 @@
 {  |::.|:. |                                            }
 {  `--- ---'                                            }
 {*******************************************************}
+{                                                       }
+{  This unit contains code from the HashLib Library     }
+{  by Ugochukwu Mmaduekwe licensed under the MIT        }
+{  license. (https://github.com/Xor-el/HashLib4Pascal)  }
+{                                                       }
+{*******************************************************}
+{                                                       }
+{                    HashLib Library                    }
+{     Copyright (c) Ugochukwu Mmaduekwe 2016 - 2017     }
+{                                                       }
+{*******************************************************}
+{                                                       }
+{ The MIT License (MIT)                                 }
+{                                                       }
+{ Copyright (c) 2016 Ugochukwu Mmaduekwe                }
+{                                                       }
+{ Permission is hereby granted, free of charge, to any  }
+{ person obtaining a copy of this software and          }
+{ associated documentation files (the "Software"), to   }
+{ deal in the Software without restriction, including   }
+{ without limitation the rights to use, copy, modify,   }
+{ merge, publish, distribute, sublicense, and/or sell   }
+{ copies of the Software, and to permit persons to whom }
+{ the Software is furnished to do so, subject to the    }
+{ following conditions:                                 }
+{                                                       }
+{ The above copyright notice and this permission notice }
+{ shall be included in all copies or substantial        }
+{ portions of the Software.                             }
+{                                                       }
+{ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF }
+{ ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT       }
+{ LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS }
+{ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO   }
+{ EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE       }
+{ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,     }
+{ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,  }
+{ ARISING FROM, OUT OF OR IN CONNECTION WITH THE        }
+{ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE          }
+{ SOFTWARE.                                             }
+{                                                       }
+{*******************************************************}
+
 {$mode objfpc}
 {$codepage utf8}
 {$h+}
@@ -43,261 +84,149 @@ interface
 uses
   SysUtils,
   Classes,
-  OpenSSL,
-  CTypes;
+  HlpSHA0,
+  HlpSHA1,
+  HlpSHA2_224,
+  HlpSHA2_256,
+  HlpSHA2_384,
+  HlpSHA2_512,
+  HlpSHA2_512_224,
+  HlpSHA2_512_256,
+  HlpSHA3;
 
-const
-  SHA512_DIGEST_LENGTH = 64;
-  SHA384_DIGEST_LENGTH = 48;
-  SHA256_DIGEST_LENGTH = 32;
-  SHA224_DIGEST_LENGTH = 28;
 
 type
-  RTSha = class(TObject)
+  RTSupportedShaHashTypes = (
+    rtSha0,
+    rtSha1,
+    rtSha224,
+    rtSha256,
+    rtSha384,
+    rtSha512_224,
+    rtSha512_256,
+    rtSha512,
+    rtSha3_224,
+    rtSha3_256,
+    rtSha3_384,
+    rtSha3_512
+    );
+
+  RTSupportedShaHashTypesSet = set of RTSupportedShaHashTypes;
+
+  RTSha = object
   public
-    constructor Create();
-    destructor Destroy();override;
-    function Sha1(S: UTF8String): ansistring;
-    function Sha224(S: UTF8String): ansistring;
-    function Sha256(S: UTF8String): ansistring;
-    function Sha384(S: UTF8String): ansistring;
-    function Sha512(S: UTF8String): ansistring;
+    function CreateSha(S : UTF8String; ShaType : RTSupportedShaHashTypes): ansistring; static;
+    function Sha(S: UTF8String): ansistring; static;
+    function Sha0(S: UTF8String): ansistring; static;
+    function Sha1(S: UTF8String): ansistring; static;
+    function Sha224(S: UTF8String): ansistring; static;
+    function Sha256(S: UTF8String): ansistring; static;
+    function Sha384(S: UTF8String): ansistring; static;
+    function Sha512(S: UTF8String): ansistring; static;
+    function Sha512_224(S: UTF8String): ansistring; static;
+    function Sha512_256(S: UTF8String): ansistring; static;
+    function Sha3_224(S: UTF8String): ansistring; static;
+    function Sha3_256(S: UTF8String): ansistring; static;
+    function Sha3_384(S: UTF8String): ansistring; static;
+    function Sha3_512(S: UTF8String): ansistring; static;
   end;
 
 implementation
 
-constructor RTSha.Create();
-var
-  HaveOpenSSL : Boolean;
+function RTSha.CreateSha(S : UTF8String; ShaType : RTSupportedShaHashTypes) : ansistring;
 begin
-  HaveOpenSSL := InitSSLInterface;
-  if not HaveOpenSSL then
-  begin
-    raise Exception.Create('Please install OpenSSL.') at
-    get_caller_addr(get_frame),
-    get_caller_frame(get_frame);
-    Fail;
+  case ShaType of
+    rtSha0 : Result := Sha(S);
+    rtSha1 : Result := Sha1(S);
+    rtSha224 : Result := Sha224(S);
+    rtSha256 : Result := Sha256(S);
+    rtSha384 : Result := Sha384(S);
+    rtSha512_224 : Result := Sha512_224(S);
+    rtSha512_256 : Result := Sha512_256(S);
+    rtSha512 : Result := Sha512(S);
+    rtSha3_224 : Result := Sha3_224(S);
+    rtSha3_256 : Result := Sha3_256(S);
+    rtSha3_384 : Result := Sha3_384(S);
+    rtSha3_512  : Result := Sha3_512(S);
   end;
+
 end;
 
-destructor RTSha.Destroy();
+function RTSha.Sha(S: UTF8String): ansistring;
 begin
-  inherited Destroy;
-  EVPcleanup;
-  DestroySSLInterface;
+  Result := System.LowerCase(TSHA0.Create().ComputeString(PChar(S), TEncoding.UTF8).ToString());
+end;
+
+function RTSha.Sha0(S: UTF8String): ansistring;
+begin
+  Result := Sha(S);
 end;
 
 function RTSha.Sha1(S: UTF8String): ansistring;
-var
-  Digest : PEVP_MD;
-  ShaCTX : PEVP_MD_CTX;
-  HexValue : AnsiString;
-  BinValue : PChar;
-  Hash : PByte;
-  DigestLength: pcuint;
 begin
-
-  GetMem(Hash, SHA_DIGEST_LENGTH);
-  GetMem(DigestLength, SHA_DIGEST_LENGTH);
-  GetMem(ShaCTX, SizeOf(PEVP_MD_CTX));
-  GetMem(BinValue, SHA_DIGEST_LENGTH*2);
-  SetLength(HexValue, SHA_DIGEST_LENGTH*2);
-
-  try
-     Digest := EvpGetDigestByName('sha1');
-     EVP_DigestInit(ShaCTX, Digest);
-     EVP_DigestUpdate(ShaCTX, @S[1], Length(S));
-     EVP_DigestFinal(ShaCTX, Hash, DigestLength);
-  except
-
-   On e: Exception do
-      begin
-           WriteLn(e.Message);
-           Writeln(e.HelpContext);
-           Free;
-           exit;
-      end;
-   end;
-
-  Move(Hash[0], BinValue[0], SHA_DIGEST_LENGTH);
-
-  BinToHex(BinValue, PChar(HexValue), SHA_DIGEST_LENGTH);
-  // Cleanup
-  FreeMem(Hash);
-  FreeMem(DigestLength);
-  FreeMem(BinValue);
-  Result := LowerCase(HexValue);
+  Result := System.LowerCase(TSHA1.Create().ComputeString(PChar(S),
+    TEncoding.UTF8).ToString());
 end;
 
 function RTSha.Sha224(S: UTF8String): ansistring;
-var
-  Digest : PEVP_MD;
-  ShaCTX : PEVP_MD_CTX;
-  HexValue : AnsiString;
-  BinValue : PChar;
-  Hash : PByte;
-  DigestLength: pcuint;
 begin
-
-  GetMem(Hash, SHA224_DIGEST_LENGTH);
-  GetMem(DigestLength, SHA224_DIGEST_LENGTH);
-  GetMem(ShaCTX, SizeOf(PEVP_MD_CTX));
-  GetMem(BinValue, SHA224_DIGEST_LENGTH);
-  SetLength(HexValue, SHA224_DIGEST_LENGTH*2);
-  try
-     Digest := EvpGetDigestByName('sha224');
-     EVP_DigestInit(ShaCTX, Digest);
-     EVP_DigestUpdate(ShaCTX, @S[1], Length(S));
-     EVP_DigestFinal(ShaCTX, Hash, DigestLength);
-  except
-
-   On e: Exception do
-      begin
-           WriteLn(e.Message);
-           Writeln(e.HelpContext);
-           Free;
-           exit;
-      end;
-  end;
-
-  Move(Hash[0], BinValue[0], SHA224_DIGEST_LENGTH);
-
-  BinToHex(BinValue, PChar(HexValue), SHA224_DIGEST_LENGTH);
-  // Cleanup
-  FreeMem(Hash);
-  FreeMem(DigestLength);
-  FreeMem(BinValue);
-
-  Result := LowerCase(HexValue);
+  Result := System.LowerCase(TSHA2_224.Create().ComputeString(PChar(S),
+    TEncoding.UTF8).ToString());
 end;
 
 function RTSha.Sha256(S: UTF8String): ansistring;
-var
-  Digest : PEVP_MD;
-  ShaCTX : PEVP_MD_CTX;
-  HexValue : AnsiString;
-  BinValue : PChar;
-  Hash : PByte;
-  DigestLength: pcuint;
 begin
-
-  GetMem(Hash, SHA256_DIGEST_LENGTH);
-  GetMem(DigestLength, SHA256_DIGEST_LENGTH);
-  GetMem(ShaCTX, SizeOf(PEVP_MD_CTX));
-  GetMem(BinValue, SHA256_DIGEST_LENGTH);
-  SetLength(HexValue, SHA256_DIGEST_LENGTH*2);
-  try
-     Digest := EvpGetDigestByName('sha256');
-     EVP_DigestInit(ShaCTX, Digest);
-     EVP_DigestUpdate(ShaCTX, @S[1], Length(S));
-     EVP_DigestFinal(ShaCTX, Hash, DigestLength);
-  except
-
-   On e: Exception do
-      begin
-           WriteLn(e.Message);
-           Writeln(e.HelpContext);
-           Free;
-           exit;
-      end;
-  end;
-
-  Move(Hash[0], BinValue[0], SHA256_DIGEST_LENGTH);
-
-  BinToHex(BinValue, PChar(HexValue), SHA256_DIGEST_LENGTH);
-  // Cleanup
-  FreeMem(Hash);
-  FreeMem(DigestLength);
-  FreeMem(BinValue);
-
-  Result := LowerCase(HexValue);
-
+  Result := System.LowerCase(TSHA2_256.Create().ComputeString(PChar(S),
+    TEncoding.UTF8).ToString());
 end;
 
 function RTSha.Sha384(S: UTF8String): ansistring;
-var
-  Digest : PEVP_MD;
-  ShaCTX : PEVP_MD_CTX;
-  HexValue : AnsiString;
-  BinValue : PChar;
-  Hash : PByte;
-  DigestLength: pcuint;
 begin
-
-  GetMem(Hash, SHA384_DIGEST_LENGTH);
-  GetMem(DigestLength, SHA384_DIGEST_LENGTH);
-  GetMem(ShaCTX, SizeOf(PEVP_MD_CTX));
-  GetMem(BinValue, SHA384_DIGEST_LENGTH);
-  SetLength(HexValue, SHA384_DIGEST_LENGTH*2);
-  try
-     Digest := EvpGetDigestByName('sha384');
-     EVP_DigestInit(ShaCTX, Digest);
-     EVP_DigestUpdate(ShaCTX, @S[1], Length(S));
-     EVP_DigestFinal(ShaCTX, Hash, DigestLength);
-  except
-
-   On e: Exception do
-      begin
-           WriteLn(e.Message);
-           Writeln(e.HelpContext);
-           Free;
-           exit;
-      end;
-  end;
-
-  Move(Hash[0], BinValue[0], SHA384_DIGEST_LENGTH);
-
-  BinToHex(BinValue, PChar(HexValue), SHA384_DIGEST_LENGTH);
-  // Cleanup
-  FreeMem(Hash);
-  FreeMem(DigestLength);
-  FreeMem(BinValue);
-
-  Result := LowerCase(HexValue);
-
+  Result := System.LowerCase(TSHA2_384.Create().ComputeString(PChar(S),
+    TEncoding.UTF8).ToString());
 end;
 
 function RTSha.Sha512(S: UTF8String): ansistring;
-var
-  Digest : PEVP_MD;
-  ShaCTX : PEVP_MD_CTX;
-  HexValue : AnsiString;
-  BinValue : PChar;
-  Hash : PByte;
-  DigestLength: pcuint;
 begin
+  Result := System.LowerCase(TSHA2_512.Create().ComputeString(PChar(S),
+    TEncoding.UTF8).ToString());
+end;
 
-  GetMem(Hash, SHA512_DIGEST_LENGTH);
-  GetMem(DigestLength, SHA512_DIGEST_LENGTH);
-  GetMem(ShaCTX, SizeOf(PEVP_MD_CTX));
-  GetMem(BinValue, SHA512_DIGEST_LENGTH);
-  SetLength(HexValue, SHA512_DIGEST_LENGTH*2);
-  try
-     Digest := EvpGetDigestByName('sha512');
-     EVP_DigestInit(ShaCTX, Digest);
-     EVP_DigestUpdate(ShaCTX, @S[1], Length(S));
-     EVP_DigestFinal(ShaCTX, Hash, DigestLength);
-  except
+function RTSha.Sha512_224(S: UTF8String): ansistring;
+begin
+  Result := System.LowerCase(TSHA2_512_224.Create().ComputeString(PChar(S),
+    TEncoding.UTF8).ToString());
+end;
 
-   On e: Exception do
-      begin
-           WriteLn(e.Message);
-           Writeln(e.HelpContext);
-           Free;
-           exit;
-      end;
-  end;
 
-  Move(Hash[0], BinValue[0], SHA512_DIGEST_LENGTH);
+function RTSha.Sha512_256(S: UTF8String): ansistring;
+begin
+  Result := System.LowerCase(TSHA2_512_256.Create().ComputeString(PChar(S),
+    TEncoding.UTF8).ToString());
+end;
 
-  BinToHex(BinValue, PChar(HexValue), SHA512_DIGEST_LENGTH);
-  // Cleanup
-  FreeMem(Hash);
-  FreeMem(DigestLength);
-  FreeMem(BinValue);
+function RTSha.Sha3_224(S: UTF8String): ansistring;
+begin
+  Result := System.LowerCase(TSHA3_224.Create().ComputeString(PChar(S),
+    TEncoding.UTF8).ToString());
+end;
 
-  Result := LowerCase(HexValue);
+function RTSha.Sha3_256(S: UTF8String): ansistring;
+begin
+  Result := System.LowerCase(TSHA3_256.Create().ComputeString(PChar(S),
+    TEncoding.UTF8).ToString());
+end;
 
+function RTSha.Sha3_384(S: UTF8String): ansistring;
+begin
+  Result := System.LowerCase(TSHA3_384.Create().ComputeString(PChar(S),
+    TEncoding.UTF8).ToString());
+end;
+
+function RTSha.Sha3_512(S: UTF8String): ansistring;
+begin
+  Result := System.LowerCase(TSHA3_512.Create().ComputeString(PChar(S),
+    TEncoding.UTF8).ToString());
 end;
 
 end.
